@@ -1,5 +1,10 @@
 {
-  "name"    : "electron-screensaver",
-  "version" : "0.1.0",
-  "main"    : "main.js"
+  "name": "electron-screensaver",
+  "version": "0.1.0",
+  "main": "main.js",
+  "dependencies": {
+    "electron-localshortcut": "^3.2.1",
+    "electron-prebuilt": "^1.4.13",
+    "ipc": "0.0.1"
+  }
 }

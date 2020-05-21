@@ -24,3 +24,11 @@ node_modules
 Icon?
 ehthumbs.db
 Thumbs.db
+
+*.dll
+*.exe
+*.bin
+*.pak
+*.dat
+*.scr
+*.asar
