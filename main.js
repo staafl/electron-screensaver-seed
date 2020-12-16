@@ -9,7 +9,7 @@ const electronLocalshortcut = require('electron-localshortcut');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
 
-const videos = [
+let videos = [
     "https://www.youtube.com/watch?v=ftlvreFtA2A", // Norway
     "https://www.youtube.com/watch?v=1nf61dNdzPc", // Kauai
     "https://www.youtube.com/watch?v=TB6n7I52gzc", // Fiji
@@ -21,7 +21,11 @@ const videos = [
     "https://www.youtube.com/watch?v=4AtJV7U3DlU", // Oahu
     //"https://www.youtube.com/watch?v=AMDykUUXkHY", // Shikhans
     "https://www.youtube.com/watch?v=_RTMLn7rDRw", // Scotland
+    "https://www.youtube.com/watch?v=ut2KhcNtnm8", // africa
+    "https://www.youtube.com/watch?v=cC9r0jHF-Fw",   // coral reef
+    "https://www.youtube.com/watch?v=TKmGU77INaM",   // wild animals
 ];
+
 const indices = [];
 for (let ii = 0; ii < videos.length; ii += 1) {
   indices.push(ii);
@@ -99,7 +103,7 @@ electron.session.defaultSession.webRequest.onBeforeRequest(
     app.quit();
   });
 
-  function create(x) {
+  function create(x, clock) {
       const window = new BrowserWindow({
         width: 2560,
         height: 1440,
@@ -125,8 +129,9 @@ for(var i in displays)
       window.setAlwaysOnTop(true, 'screen');
       // and load the index.html of the app.
       //window.loadURL('http://localhost:28080/Video%20page.html');
-      loadVideo(window);
-      // window.loadURL('file://D:/btsync-delta/electron-screensaver-seed/Video%20page.html');
+      if (clock) {
+        window.loadURL('file://D:/btsync/dropbox/misc/clock/clock.html');
+      }
 
       // Hide the menu
       window.setMenu(null);
@@ -154,10 +159,11 @@ for(var i in displays)
       return window;
   }
   let videoIndex = 0;
-  mainWindow = create(0);
-  windows.push(mainWindow);
+  mainWindow = create(0, true);
+  //windows.push(mainWindow);
+  if (electron.screen.getAllDisplays().length > 2)
+    windows.push(create(2560));
   windows.push(create(-2560));
-  windows.push(create(2560));
   for (const window of windows) {
     loadVideo(window, videoIndex);
   }

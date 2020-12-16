@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><script type="text/javascript" id="www-widgetapi-script" src="Video%20page_files/www-widgetapi.js" async=""></script><script type="text/javascript" async="" src="Video%20page_files/analytics.js"></script><script src="Video%20page_files/iframe_api" id="YTAPI"></script>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="Video%20page_files/jquery.css">
+<script
+			  src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+			  crossorigin="anonymous"></script>
+<script src="Video%20page_files/jquery-3.js"></script>
+<script src="Video%20page_files/jquery.js"></script>
+<script src="Video%20page_files/jquery_002.js"></script>
+<script>
+/*
+    // ウインドウの読み込み時に1回だけスーパーリロードする
+    if (window.name != "ytscr_video")
+    {
+        location.reload();
+        window.name = "ytscr_video";
+    }
+*/
+let defaultUrls = []
+// stargaze
+defaultUrls = ["https://www.youtube.com/watch?v=YQrf6r-9ozc"]//https://www.youtube.com/watch?v=Y_plhk1FUQA&t=20"];
+// drone photos
+defaultUrls = ["https://www.youtube.com/watch?v=lM02vNMRRB0"]//https://www.youtube.com/watch?v=Y_plhk1FUQA&t=20"];
+// flight over kauaii
+defaultUrls = ["https://www.youtube.com/watch?v=1nf61dNdzPc&hd=1&vq=hd1080"]//https://www.youtube.com/watch?v=Y_plhk1FUQA&t=20"];
+if (location.hash) {
+  defaultUrls = [decodeURI(location.hash.slice(1))];
+}
+    // クッキー文字列からオブジェクト(連想配列)を生成する
+    function break_cookie( cookie_string ){
+        var arrTemp = cookie_string.split('|');
+
+        var objValue = {};
+        arrTemp.forEach( function( value ){
+            var arrStuff = value.split(' ');
+            // オブジェクトにクッキーの内容を連想配列で格納
+            objValue[arrStuff[0]] = arrStuff[1];
+        });
+        return objValue;
+    }
+
+    $(function(){
+
+  
+        // クッキーを取得
+        var objCookie = {};
+        if( $.cookie( "ytscr" )){
+            // オブジェクトにクッキーを代入
+            objCookie = break_cookie( $.cookie( "ytscr" ));
+        } else {
+            console.log( "Error: no cookies." );
+        }
+
+        // objCookieからYouTubeのURLを取得
+        var arrCookieURL = [];
+        if( objCookie !== undefined ){
+            arrCookieURL = [
+                objCookie["url[0]"], objCookie["url[1]"],
+                objCookie["url[2]"], objCookie["url[3]"],
+                objCookie["url[4]"]
+            ];
+        }
+
+        var Url = [];
+        for( var j = 0; j < arrCookieURL.length; j++ ){
+            if( arrCookieURL[j] ){
+                // URLのデータが存在する
+                if( arrCookieURL[j] !== "nodata" ) {
+                    Url[j] = arrCookieURL[j];
+                } else {
+                    // xxxxxxxxxxx: 存在しないIDを代入する
+                    // そうしないとエラーが出て他の動画が再生されない
+                    Url[j] = "https://www.youtube.com/watch?v=xxxxxxxxxxx";
+                }
+            } else {
+                //Url[j] = arrUrl && arrUrl[j];
+            }
+            console.log( "Url[" + j + "]: " + Url[j] )
+        }
+        Url = defaultUrls;
+
+        // シャッフル再生か否か
+        var PlayType =  objCookie["play_type"];
+        var bPlayType = false;
+        if( PlayType === "shuffle_on" ){
+            bPlayType = true;
+        } else if( PlayType === "shuffle_off" ) {
+            bPlayType = false;
+        } else if( PlayType === undefined ) {
+            bPlayType = true;
+        }
+        console.log( "Shuffle Play: " + bPlayType );
+
+        // ビデオサイズを画面の内側に収めるか否か
+        var FitVideo =  objCookie["fit_video"];
+        var bFitVideo = true;
+        if( FitVideo === "fit_video_on" ){
+            bFitVideo = false;
+        } else if( FitVideo === "fit_video_off" ) {
+            bFitVideo = true;
+        } else if( FitVideo === undefined ) {
+            bFitVideo = false;
+        }
+        console.log( "Fit Video: " + bFitVideo );
+
+        // 音量
+        var Volume = Number( objCookie["volume"] );
+        if( Volume === undefined ){
+            Volume = 0;
+        }
+        console.log( "Volume: " + Volume ) ;
+
+        var index = 0;
+        var videos = [];
+        for( var k = 0; k < Url.length; k++ ){
+            if( Url[k] !== "https://www.youtube.com/watch?v=xxxxxxxxxxx" ){
+
+                // YouTubeのURLが正常なものだけプレイリストに追加
+                videos[index] = {
+                    videoURL:Url[k],
+                    quality:'highres',
+                    containment:'body',
+                    autoPlay:true,
+                    vol:0,
+                    startAt:0,
+                    opacity:1,
+                    loop:true,
+                    ratio:"auto",
+                    showYTLogo:false,
+                    optimizeDisplay:false,
+                    stopMovieOnBlur:false,
+                    showAnnotations:false,
+                    cc_load_policy:false
+                };
+                console.log( videos[index] );
+                index++;
+            }
+        }
+
+        // プレイリストの動画を再生する
+        $("#bgndVideo").YTPlaylist( videos, bPlayType );
+
+        // プレイリストの2曲目以降の再生になると、
+        // 音量が0になってしまうのでここで音量を設定する
+        var playIndex = 0;
+        $("#bgndVideo").on("YTPStart",function(e){
+            if( playIndex >= 1 ){
+                if( Volume != 0){
+                    // 1曲目はVolumeが0の場合、YTPSetVolume(0)をすると音量変更ができずエラーとなる
+                    // 1曲目のVolume 0は上の初期配列videos[index]で設定する
+                    // 2曲目以降にVolumeが0でなかったら設定する
+                    $("#bgndVideo").YTPSetVolume(Volume);
+                    console.log( "YTPSetVolume: " + Volume );
+                }
+            }
+
+            console.log( "PlayIndex: " + playIndex );
+            playIndex++;
+        });
+
+        // 3秒間マウスが動かなかったらカーソルを消す
+        function timer_func(){
+            $("body").css( "cursor", "none" );
+            console.log( "cursor : none" );
+        }
+        var time_limit = 3000;
+        var timer_id = setTimeout( timer_func, time_limit );
+        $('body').on( 'mousemove', function(){
+            $("body").css( "cursor", "auto" );
+            clearTimeout( timer_id );
+            timer_id = setTimeout( timer_func, time_limit );
+        });
+    });
+</script>
+<script async="" src="Video%20page_files/js"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-121436659-1');
+</script>
+<style>
+    /* フルスクリーンボタンを非表示にする */
+    .mb_YTPBar span.mb_OnlyYT {display: none;}
+
+    /* ミュート/アンミュートボタンを非表示にする */
+    .mb_YTPBar span.mb_YTPMuteUnmute {display: none;}
+
+    /* 音量調節スライダーを非表示にする */
+    .mb_YTPBar div.simpleSlider {display: none !important;}
+</style>
+</head>
+<body style="background-color: rgb(0, 0, 0); box-sizing: border-box; cursor: auto; width: 2560px; height: 1440px;">
+<div id="wrapper_bgndVideo" style="position: fixed; z-index: 0; min-width: 100%; min-height: 100%; width: 2560px; height: 1440px; left: 0px; top: 0px; overflow: hidden; opacity: 0;" class="mbYTP_wrapper">
+<iframe id="iframe_bgndVideo" class="playerBox" style="position: absolute; z-index: 0; width: 2560px; height: 1440px; top: 0px; left: 0px; overflow: hidden; opacity: 1; user-select: none; margin-top: 0px; margin-left: -286.5px; max-width: initial;" allowfullscreen="1" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" title="YouTube video player" src="Video%20page_files/a.html" unselectable="on" width="2560" height="1440" frameborder="0"></iframe>
+<div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;" class="YTPOverlay"></div>
+</div>
+<div id="bgndVideo" style="display: none; position: relative;" class="mb_YTPlayer isMuted"></div>
+
+<style>i { color: #ccc !important }</style>
+</body>
+<span id="controlBar_bgndVideo" class="mb_YTPBar" style="white-space: nowrap; position: fixed; z-index: 10000; display: none;">
+<div class="buttonBar">
+<span class="mb_YTPPlayPause ytpicon">P</span>
+<span class="mb_YTPMuteUnmute ytpicon">A</span>
+<div class="mb_YTPVolumeBar simpleSlider muted" style="display: inline-block; cursor: auto;">
+<div class="level horizontal" style="width: 0%;">
+</div>
+</div>
+<span class="mb_YTPTime"></span>
+<span class="mb_YTPUrl ytpicon" title="view on YouTube">Y</span>
+<span class="mb_OnlyYT ytpicon">O</span>
+</div>
+<div class="mb_YTPProgress" style="position: absolute;">
+<div class="mb_YTPLoaded" style="position: absolute;"></div>
+<div class="mb_YTPseekbar" style="position: absolute;"></div>
+</div>
+</span>
+</html>
